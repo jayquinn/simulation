@@ -1,5 +1,6 @@
 ####K-BNT replicate
 #자비스 사람만들기
+set.seed(3333)
 id<-1:1953
 age<-rep(1:9,each=217) # 9, 217
 edu<-rep(1:7,279) # 7, 279
