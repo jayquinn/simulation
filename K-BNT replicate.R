@@ -18,6 +18,13 @@ datainf<-sample[c(1:7,218:224,435:441,652:658,869:874,1086:1092,1303:1309,1520:1
 datainf[1,]
 edit(datainf)
 
-library(ggplot2) #ggplot과 geom_line 참조
+library(ggplot2)
 ggplot(data=datainf,mapping=aes(x=age,y=mean,group=edu,color=edu))+geom_line()+xlim(1,9)+ylim(10,60)
 ggplot(data=datainf,mapping=aes(x=age,y=sd,group=edu,color=edu))+geom_line()+xlim(1,7)+ylim(0,18)
+
+#### raw data 생성 ####
+n<-31
+normals<-vector("list",length(datainf$mean))
+for(i in seq_along(normals)){
+  normals[[i]]<-rnorm(n,mean = datainf$mean[i], sd = datainf$sd[i])
+}
