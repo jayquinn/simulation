@@ -118,8 +118,33 @@ colnames(sample)<-c("id","age","edu","grp","mean","sd","sums","rasch","tpl","cfa
 #상관 그림
 #plot(sample[,7:10])
 
-#상관계수 
+#https://stackoverflow.com/questions/65838778/how-to-compute-the-pearson-s-correlation-between-variables-using-map-function
+#전체상관계수 
 #attach(sample);cleft<-list(sums,sums,sums,rasch,rasch,cfa);cright<-list(rasch,tpl,cfa,tpl,cfa,rasch);detach(sample)
 #totalcor<-as.data.frame(totalcor<-rbind(map2_dbl(cleft,cright,cor),map2_dbl(cleft,cright,cor, method = "spearman")));colnames(totalcor)<-c("sums-rasch","sums-tpl","sums-cfa","rasch-tpl","rasch-cfa","cfa-rasch");rownames(totalcor)<-c("pearson","spearman")
 #print(totalcor)
 
+#grp별 피어슨상관계수
+pearson<-vector("list",63)
+for(i in 1:63){
+  a<-filter(sample,grp==i)
+  b<-as.double(cor(a[,7:10]))
+  pearson[[i]]<-b[c(2:4,7:8,12)]
+}
+grpcorp<-unlist(pearson)
+grpcorp<-as.data.frame(matrix(grpcorp, ncol = 6, byrow=T))
+colnames(grpcorp)<-c("sums-rasch","sums-tpl","sums-cfa","rasch-tpl","rasch-cfa","cfa-rasch")
+head(round(grpcorp,2))
+
+#grp별 스피어만 상관계수
+spearman<-vector("list",63)
+for(i in 1:63){
+  a<-filter(sample,grp==i)
+  b<-as.double(cor(a[,7:10], method = "spearman"))
+  spearman[[i]]<-b[c(2:4,7:8,12)]
+}
+grpcors<-unlist(spearman)
+grpcors<-as.data.frame(matrix(grpcors, ncol = 6, byrow=T))
+colnames(grpcors)<-c("sums-rasch","sums-tpl","sums-cfa","rasch-tpl","rasch-cfa","cfa-rasch")
+head(round(grpcors,2))
+edit(grpcors)
