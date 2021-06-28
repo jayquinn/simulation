@@ -52,4 +52,19 @@ pattern<-as.data.frame(matrix(unlist(pattern), nrow = nrow(sample), ncol = 60, b
 
 #문항 모수 추정
 library(mirt)
-mod1<-mirt(pattern,1)
+model.pcm <- 'F1 = 1-19' 
+results.pcm <- mirt(data=response, model=model.pcm, itemtype="Rasch", SE=TRUE, verbose=FALSE)
+coef.pcm <- coef(results.pcm, IRTpars=TRUE, simplify=TRUE)
+items.pcm <- as.data.frame(coef.pcm$items)
+print(items.pcm)
+summary(results.pcm)
+plot(results.pcm, type = 'trace', which.items = c(1:19))
+plot(results.pcm, type = 'infotrace', which.items = c(1:19))
+plot(results.pcm, type = 'info', theta_lim = c(-4,4), lwd=2)
+plot(results.pcm, type = 'SE', theta_lim = c(-4,4), lwd=2)
+plot(results.pcm, type = 'score', theta_lim = c(-4,4), lwd=2)
+plot(results.pcm, type = 'itemscore', theta_lim = c(-4,4), lwd=2)
+plot(results.pcm, type = 'rxx', theta_lim = c(-4,4), lwd=2)
+
+score.PCM<-fscores(results.pcm,method = 'EAP')
+hist(score.PCM)# EAP(default) MAP ML WLE EAPsum
