@@ -13,10 +13,10 @@ sample<-data.frame(id,age,edu,grp,mean,sd)
 sample<-round(sample, digits = 2)
 
 #그림그리기
-#datainf<-sample[seq(from = 1, to = 1923, by = 31),]
+datainf<-sample[seq(from = 1, to = 1923, by = 31),]
 #library(ggplot2)
-#ggplot(data=datainf,mapping=aes(x=age,y=mean,group=edu,color=edu))+geom_line()+xlim(1,9)+ylim(10,60)
-#ggplot(data=datainf,mapping=aes(x=age,y=sd,group=edu,color=edu))+geom_line()+xlim(1,7)+ylim(0,18)
+ggplot(data=datainf,mapping=aes(x=age,y=mean,group=edu,color=edu))+geom_line()+xlim(1,9)+ylim(10,60)
+ggplot(data=datainf,mapping=aes(x=age,y=sd,group=edu,color=edu))+geom_line()+xlim(1,7)+ylim(0,18)
 
 #총점 생성
 n<-31
@@ -33,12 +33,6 @@ sample[,"ctt"]<-ifelse(sample$ctt>=60,60,sample$ctt)
 #따라서 할 일은 문항 패턴 만들기!
 
 #library(tidyverse)
-f <-list(1,0)
-to <- list(1,0)
-plz<-list(from = f,to = to,length.out = lo)
-pattern<-unlist(plz %>% pmap(seq))
-
-
 pattern<-vector("list",nrow(sample))
 for(i in seq_along(sample$ctt)){
   f <-list(1,0)
@@ -47,8 +41,6 @@ for(i in seq_along(sample$ctt)){
   plz<-list(from = f,to = to,length.out = lo)
   pattern[[i]]<-unlist(plz %>% pmap(seq))
 }
-unlist(pattern)
-head(as.matrix(unlist(pattern),nrow = 60), byrow=T)
 pattern<-as.data.frame(matrix(unlist(pattern), nrow = nrow(sample), ncol = 60, byrow=T))
 
 #흐트러놓기 - 홀수 문항에 대해서
@@ -56,14 +48,19 @@ pattern<-as.data.frame(matrix(unlist(pattern), nrow = nrow(sample), ncol = 60, b
 #  pattern[i,]<-sample(pattern[i,],60,replace = F)
 #}
 #흐트러놓기 - 전체 문항에 대해서
+#for(i in seq(1,nrow(pattern),by=1)){
+#  pattern[i,]<-sample(pattern[i,],60,replace = F)
+#}
+#문항반응패턴 -> 난이도 증가
 for(i in seq(1,nrow(pattern),by=1)){
-  pattern[i,]<-sample(pattern[i,],60,replace = F)
+  pattern[i,]<-sample(pattern[i,],60,replace = F,prob=rep(c(0.8,0.1,0.1,0.01,0.01,0.01), each=10))
 }
+
 #문항 모수 추정 rasch
 #library(mirt)
 model.rasch <- 'F1 = 1-60' 
 results.rasch <- mirt(data = pattern, model=model.rasch, itemtype="Rasch", SE=TRUE, verbose=FALSE)
-score.rasch<-fscores(results.rasch,method = 'EAP')# EAP(default) MAP ML WLE EAPsum
+score.rasch<-fscores(results.rasch,method = 'MAP')# EAP(default) MAP ML WLE EAPsum
 #coef.rasch <- coef(results.rasch, IRTpars=TRUE, simplify=TRUE)
 #items.rasch <- as.data.frame(coef.rasch$items)
 #print(coef.rasch)
@@ -83,10 +80,10 @@ score.rasch<-fscores(results.rasch,method = 'EAP')# EAP(default) MAP ML WLE EAPs
 #library(mirt)
 model.tpl <- 'F1 = 1-60' 
 results.tpl <- mirt(data=pattern, model=model.tpl, itemtype="2PL", SE=TRUE, verbose=FALSE)
-score.tpl<-fscores(results.tpl,method = 'EAP')# EAP(default) MAP ML WLE EAPsum
-#coef.tpl <- coef(results.tpl, IRTpars=TRUE, simplify=TRUE)
+score.tpl<-fscores(results.tpl,method = 'MAP')# EAP(default) MAP ML WLE EAPsum
+coef.tpl <- coef(results.tpl, IRTpars=TRUE, simplify=TRUE)
 #items.tpl <- as.data.frame(coef.tpl$items)
-#print(coef.tpl)
+print(coef.tpl)
 #print(items.tpl)
 #summary(results.tpl)
 #plot(results.tpl, type = 'trace', which.items = c(1:60))
@@ -116,13 +113,13 @@ sample<-cbind(sample,score.rasch,score.tpl,score.cfa)
 colnames(sample)<-c("id","age","edu","grp","mean","sd","sums","rasch","tpl","cfa")
 
 #상관 그림
-#plot(sample[,7:10])
+plot(sample[,7:10])
 
 #https://stackoverflow.com/questions/65838778/how-to-compute-the-pearson-s-correlation-between-variables-using-map-function
 #전체상관계수 
-#attach(sample);cleft<-list(sums,sums,sums,rasch,rasch,cfa);cright<-list(rasch,tpl,cfa,tpl,cfa,rasch);detach(sample)
-#totalcor<-as.data.frame(totalcor<-rbind(map2_dbl(cleft,cright,cor),map2_dbl(cleft,cright,cor, method = "spearman")));colnames(totalcor)<-c("sums-rasch","sums-tpl","sums-cfa","rasch-tpl","rasch-cfa","cfa-rasch");rownames(totalcor)<-c("pearson","spearman")
-#print(totalcor)
+attach(sample);cleft<-list(sums,sums,sums,rasch,rasch,cfa);cright<-list(rasch,tpl,cfa,tpl,cfa,rasch);detach(sample)
+totalcor<-as.data.frame(totalcor<-rbind(map2_dbl(cleft,cright,cor),map2_dbl(cleft,cright,cor, method = "spearman")));colnames(totalcor)<-c("sums-rasch","sums-tpl","sums-cfa","rasch-tpl","rasch-cfa","cfa-rasch");rownames(totalcor)<-c("pearson","spearman")
+print(totalcor)
 
 #grp별 피어슨상관계수
 pearson<-vector("list",63)
@@ -147,4 +144,5 @@ grpcors<-unlist(spearman)
 grpcors<-as.data.frame(matrix(grpcors, ncol = 6, byrow=T))
 colnames(grpcors)<-c("sums-rasch","sums-tpl","sums-cfa","rasch-tpl","rasch-cfa","cfa-rasch")
 head(round(grpcors,2))
-edit(grpcors)
+
+?simdata
