@@ -1,5 +1,5 @@
 ####K-BNT replicate
-#library(tidyverse);library(ggplot2); library(mirt); library(lavaan)
+library(tidyverse);library(ggplot2); library(mirt); library(lavaan)
 #사람만들기
 set.seed(3333)
 id<-1:1953
@@ -27,11 +27,7 @@ for(i in seq_along(normals)){
 sample[,"ctt"]<-unlist(normals)
 sample[,"ctt"]<-ifelse(sample$ctt>=60,60,sample$ctt)
 
-#망한 것 같은데? (1) 문항에 대한 정보도 없고 (2) 문항 반응 패턴도 못 만든다.
-#문항 정보를 알고 있으면 simdata 함수 이용
-#문항 패턴을 알고 있으면 그건 그냥 추정하면 된다.
-#따라서 할 일은 문항 패턴 만들기!
-
+#문항반응패턴생성
 #library(tidyverse)
 pattern<-vector("list",nrow(sample))
 for(i in seq_along(sample$ctt)){
@@ -60,7 +56,7 @@ for(i in seq(1,nrow(pattern),by=1)){
 #library(mirt)
 model.rasch <- 'F1 = 1-60' 
 results.rasch <- mirt(data = pattern, model=model.rasch, itemtype="Rasch", SE=TRUE, verbose=FALSE)
-score.rasch<-fscores(results.rasch,method = 'MAP')# EAP(default) MAP ML WLE EAPsum
+score.rasch<-fscores(results.rasch,method = 'EAP')# EAP(default) MAP ML WLE EAPsum
 #coef.rasch <- coef(results.rasch, IRTpars=TRUE, simplify=TRUE)
 #items.rasch <- as.data.frame(coef.rasch$items)
 #print(coef.rasch)
@@ -80,7 +76,7 @@ score.rasch<-fscores(results.rasch,method = 'MAP')# EAP(default) MAP ML WLE EAPs
 #library(mirt)
 model.tpl <- 'F1 = 1-60' 
 results.tpl <- mirt(data=pattern, model=model.tpl, itemtype="2PL", SE=TRUE, verbose=FALSE)
-score.tpl<-fscores(results.tpl,method = 'MAP')# EAP(default) MAP ML WLE EAPsum
+score.tpl<-fscores(results.tpl,method = 'EAP')# EAP(default) MAP ML WLE EAPsum
 coef.tpl <- coef(results.tpl, IRTpars=TRUE, simplify=TRUE)
 #items.tpl <- as.data.frame(coef.tpl$items)
 print(coef.tpl)
@@ -115,6 +111,10 @@ colnames(sample)<-c("id","age","edu","grp","mean","sd","sums","rasch","tpl","cfa
 #상관 그림
 plot(sample[,7:10])
 
+#점수 히스토그램
+par(mfrow=c(2,2))
+
+par(mfrow=c(1,1))
 #https://stackoverflow.com/questions/65838778/how-to-compute-the-pearson-s-correlation-between-variables-using-map-function
 #전체상관계수 
 attach(sample);cleft<-list(sums,sums,sums,rasch,rasch,cfa);cright<-list(rasch,tpl,cfa,tpl,cfa,rasch);detach(sample)
@@ -132,7 +132,8 @@ grpcorp<-unlist(pearson)
 grpcorp<-as.data.frame(matrix(grpcorp, ncol = 6, byrow=T))
 colnames(grpcorp)<-c("sums-rasch","sums-tpl","sums-cfa","rasch-tpl","rasch-cfa","cfa-rasch")
 head(round(grpcorp,2))
-
+grpcorp[7,]
+grpcorp[57,]
 #grp별 스피어만 상관계수
 spearman<-vector("list",63)
 for(i in 1:63){
@@ -144,5 +145,5 @@ grpcors<-unlist(spearman)
 grpcors<-as.data.frame(matrix(grpcors, ncol = 6, byrow=T))
 colnames(grpcors)<-c("sums-rasch","sums-tpl","sums-cfa","rasch-tpl","rasch-cfa","cfa-rasch")
 head(round(grpcors,2))
-
-?simdata
+grpcors[7,]
+grpcors[57,]
